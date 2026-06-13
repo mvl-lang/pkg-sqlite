@@ -81,11 +81,12 @@ total fn bind_params(db: Int, params: List[DbValue]) -> Unit {
     for p in params {
         match p {
             DbValue::Null        => sqlite_param_null(db),
-            DbValue::Bool(v)     => sqlite_param_bool(db, v),
-            DbValue::Int(v)      => sqlite_param_int(db, v),
-            DbValue::Float(v)    => sqlite_param_float(db, v),
-            DbValue::Text(v)     => sqlite_param_text(db, v),
-            DbValue::Blob(v)     => sqlite_param_blob(db, blob_to_wire(v)),
+            DbValue::Bool(v)      => sqlite_param_bool(db, v),
+            DbValue::Int(v)       => sqlite_param_int(db, v),
+            DbValue::Float(v)     => sqlite_param_float(db, v),
+            DbValue::Text(v)      => sqlite_param_text(db, v),
+            DbValue::Blob(v)      => sqlite_param_blob(db, blob_to_wire(v)),
+            DbValue::Timestamp(v) => sqlite_param_int(db, v),
         }
     }
 }

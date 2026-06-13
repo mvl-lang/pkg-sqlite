@@ -19,6 +19,7 @@ type DbValue = enum {
     Float(Float),
     Text(String),
     Blob(List[Int]),
+    Timestamp(Int),
 }
 
 type SqliteError = enum {
