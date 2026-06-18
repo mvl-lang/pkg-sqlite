@@ -24,7 +24,7 @@
 //
 // See #785, #811.
 
-extern "rust" {
+extern "C" {
     // ── Connection ──────────────────────────────────────────────────────────
     total fn sqlite_open(path: String) -> Int
     total fn sqlite_close(db: Int) -> Unit
