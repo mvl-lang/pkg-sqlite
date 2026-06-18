@@ -108,25 +108,26 @@ total fn read_cell(rh: Int, row: Int where row >= 0, col: Int where col >= 0) ->
 // collect_rows: materialise all rows from a result handle into a list of maps.
 // Uses the FFI cell accessors directly (not read_cell) so that mutable loop
 // indices do not appear as unproven refined call sites in the assurance report.
-partial fn collect_rows(rh: Int) -> List[Map[String, DbValue]] {
+// `decreases` clauses on all three while loops make this provably total.
+total fn collect_rows(rh: Int) -> List[Map[String, DbValue]] {
     let n_cols: Int = sqlite_result_col_count(rh);
     let n_rows: Int = sqlite_result_row_count(rh);
 
     let col_names: ref List[String] = [];
     let ci: ref Int = 0;
-    while ci < n_cols {
+    while ci < n_cols decreases n_cols - ci {
         col_names.push(sqlite_result_col_name(rh, ci));
-        ci = ci + 1;
+        ci = ci + 1
     }
 
     let rows: ref List[Map[String, DbValue]] = [];
     let ri: ref Int = 0;
-    while ri < n_rows {
+    while ri < n_rows decreases n_rows - ri {
         // {} is an empty block in MVL, not an empty map — use sentinel pattern.
         let row: ref Map[String, DbValue] = {"__init__": DbValue::Null};
         row.remove("__init__");
         let cj: ref Int = 0;
-        while cj < n_cols {
+        while cj < n_cols decreases n_cols - cj {
             let name: String = col_names.get(cj).unwrap_or("");
             let v: DbValue = match sqlite_result_cell_type(rh, ri, cj) {
                 0 => DbValue::Null,
@@ -137,10 +138,10 @@ partial fn collect_rows(rh: Int) -> List[Map[String, DbValue]] {
                 _ => DbValue::Blob(wire_to_blob(sqlite_result_cell_blob(rh, ri, cj))),
             };
             row.insert(name, v);
-            cj = cj + 1;
+            cj = cj + 1
         }
         rows.push(row);
-        ri = ri + 1;
+        ri = ri + 1
     }
     rows
 }
@@ -182,7 +183,7 @@ pub total fn execute(val db: SqliteDb, sql: String, params: List[DbValue]) -> Re
 ///
 /// `sql` must be a bare `String` — `Tainted[String]` is rejected at the type level.
 /// Use `?` placeholders for runtime values; relabel external strings before passing.
-pub partial fn query(val db: SqliteDb, sql: String, params: List[DbValue]) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
+pub total fn query(val db: SqliteDb, sql: String, params: List[DbValue]) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
     bind_params(db._handle, params);
     let rh: Int = sqlite_query(db._handle, sql);
     if rh == -1 {
@@ -206,7 +207,7 @@ pub partial fn query(val db: SqliteDb, sql: String, params: List[DbValue]) -> Re
 ///
 /// Example:
 ///   let n = query_scalar(db, "SELECT COUNT(*) FROM users", [])?;
-pub partial fn query_scalar(val db: SqliteDb, sql: String, params: List[DbValue]) -> Result[DbValue, SqliteError] ! DB {
+pub total fn query_scalar(val db: SqliteDb, sql: String, params: List[DbValue]) -> Result[DbValue, SqliteError] ! DB {
     bind_params(db._handle, params);
     let rh: Int = sqlite_query(db._handle, sql);
     if rh == -1 {
@@ -227,7 +228,7 @@ pub partial fn query_scalar(val db: SqliteDb, sql: String, params: List[DbValue]
 ///
 /// Example:
 ///   let rows = query_by_min_age(db, 26)?;
-pub partial fn query_by_min_age(val db: SqliteDb, min_age: Int where min_age >= 0) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
+pub total fn query_by_min_age(val db: SqliteDb, min_age: Int where min_age >= 0) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
     query(db, "SELECT id, name, age FROM users WHERE age > ?", [DbValue::Int(min_age)])
 }
 
