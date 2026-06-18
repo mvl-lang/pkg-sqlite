@@ -59,7 +59,7 @@ total fn make_error(db: Int) -> SqliteError {
     }
 }
 
-total fn blob_to_wire(bytes: List[Int]) -> String {
+pub total fn blob_to_wire(bytes: List[Int]) -> String {
     if bytes.len() == 0 {
         ""
     } else {
@@ -68,7 +68,7 @@ total fn blob_to_wire(bytes: List[Int]) -> String {
     }
 }
 
-total fn wire_to_blob(csv: String) -> List[Int] {
+pub total fn wire_to_blob(csv: String) -> List[Int] {
     if csv == "" {
         []
     } else {
