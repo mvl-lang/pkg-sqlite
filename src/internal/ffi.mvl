@@ -26,7 +26,7 @@
 
 extern "rust" {
     // ── Connection ──────────────────────────────────────────────────────────
-    total fn sqlite_open(path: Clean[String]) -> Int
+    total fn sqlite_open(path: String) -> Int
     total fn sqlite_close(db: Int) -> Unit
     total fn sqlite_errmsg(db: Int) -> String
     total fn sqlite_errno(db: Int) -> Int
@@ -45,14 +45,14 @@ extern "rust" {
 
     // ── Execute (write) ──────────────────────────────────────────────────────
     // Consumes the param buffer. Returns rows affected (>=0) or -1 on error.
-    // sql: Clean[String] — callers must provide trusted SQL; ? placeholders
-    // handle untrusted values via the param binding layer.
-    total fn sqlite_execute(db: Int, sql: Clean[String]) -> Int
+    // sql: String — SQL must be application-controlled; use ? placeholders
+    // (params: List[DbValue]) for any runtime values to prevent injection.
+    total fn sqlite_execute(db: Int, sql: String) -> Int
 
     // ── Query (read) ─────────────────────────────────────────────────────────
     // Consumes the param buffer. Returns a result handle (>0) or -1 on error.
     // The result is fully materialised — call sqlite_result_drop when done.
-    total fn sqlite_query(db: Int, sql: Clean[String]) -> Int
+    total fn sqlite_query(db: Int, sql: String) -> Int
 
     // ── Result inspection ────────────────────────────────────────────────────
     total fn sqlite_result_col_count(result: Int) -> Int

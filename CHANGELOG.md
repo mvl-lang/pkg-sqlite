@@ -4,6 +4,11 @@ All notable changes to pkg-sqlite will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.4] - 2026-06-18
+
+### Fixed
+- Removed stale `Clean[String]` from FFI declarations (`sqlite_open`, `sqlite_execute`, `sqlite_query`) — `Clean` is not a declared label in MVL's IFC system, causing REQ1 type mismatches in all consumers running `mvl check` (closes #4)
+
 ## [0.1.1] - 2026-05-29
 
 ### Added
