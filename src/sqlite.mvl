@@ -59,6 +59,7 @@ total fn make_error(db: Int) -> SqliteError {
     }
 }
 
+/// Encode a blob (list of byte values 0-255) as a comma-separated decimal string for FFI transport.
 pub total fn blob_to_wire(bytes: List[Int]) -> String {
     if bytes.len() == 0 {
         ""
@@ -68,6 +69,7 @@ pub total fn blob_to_wire(bytes: List[Int]) -> String {
     }
 }
 
+/// Decode a comma-separated decimal string (from FFI transport) back into a blob.
 pub total fn wire_to_blob(csv: String) -> List[Int] {
     if csv == "" {
         []
