@@ -23,11 +23,9 @@
 //   close(db);
 //
 // See #785, ADR-0007.
-
 use std.db.{DbValue}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
 /// Opaque handle to an open SQLite database connection.
 pub type SqliteDb = struct {
     _handle: Int,
@@ -46,7 +44,6 @@ pub type SqliteError = enum {
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
-
 total fn make_error(db: Int) -> SqliteError {
     let code: Int = sqlite_errno(db);
     let msg: String = sqlite_errmsg(db);
@@ -78,16 +75,19 @@ pub total fn wire_to_blob(csv: String) -> List[Int] {
     }
 }
 
-total fn bind_params(db: Int, params: List[DbValue]) -> Unit {
+total fn bind_params(
+    db: Int,
+    params: List[DbValue],
+) -> Unit {
     sqlite_param_reset(db);
     for p in params {
         match p {
-            DbValue::Null        => sqlite_param_null(db),
-            DbValue::Bool(v)      => sqlite_param_bool(db, v),
-            DbValue::Int(v)       => sqlite_param_int(db, v),
-            DbValue::Float(v)     => sqlite_param_float(db, v),
-            DbValue::Text(v)      => sqlite_param_text(db, v),
-            DbValue::Blob(v)      => sqlite_param_blob(db, blob_to_wire(v)),
+            DbValue::Null => sqlite_param_null(db),
+            DbValue::Bool(v) => sqlite_param_bool(db, v),
+            DbValue::Int(v) => sqlite_param_int(db, v),
+            DbValue::Float(v) => sqlite_param_float(db, v),
+            DbValue::Text(v) => sqlite_param_text(db, v),
+            DbValue::Blob(v) => sqlite_param_blob(db, blob_to_wire(v)),
             DbValue::Timestamp(v) => sqlite_param_int(db, v),
         }
     }
@@ -96,7 +96,11 @@ total fn bind_params(db: Int, params: List[DbValue]) -> Unit {
 // read_cell: decode one result cell by type-code.
 // row and col are refined (>= 0) so callers with proven-literal indices
 // are fully verified by the 5-layer SMT solver (Req 10).
-total fn read_cell(rh: Int, row: Int where row >= 0, col: Int where col >= 0) -> DbValue {
+total fn read_cell(
+    rh: Int,
+    row: Int where row >= 0,
+    col: Int where col >= 0,
+) -> DbValue {
     match sqlite_result_cell_type(rh, row, col) {
         0 => DbValue::Null,
         1 => DbValue::Bool(sqlite_result_cell_bool(rh, row, col)),
@@ -114,22 +118,22 @@ total fn read_cell(rh: Int, row: Int where row >= 0, col: Int where col >= 0) ->
 total fn collect_rows(rh: Int) -> List[Map[String, DbValue]] {
     let n_cols: Int = sqlite_result_col_count(rh);
     let n_rows: Int = sqlite_result_row_count(rh);
-
     let col_names: ref List[String] = [];
     let ci: ref Int = 0;
-    while ci < n_cols decreases n_cols - ci {
+    while ci < n_cols
+        decreases n_cols - ci {
         col_names.push(sqlite_result_col_name(rh, ci));
-        ci = ci + 1
+        ci = ci + 1;
     }
-
     let rows: ref List[Map[String, DbValue]] = [];
     let ri: ref Int = 0;
-    while ri < n_rows decreases n_rows - ri {
-        // {} is an empty block in MVL, not an empty map — use sentinel pattern.
+    while ri < n_rows
+        decreases n_rows - ri {
         let row: ref Map[String, DbValue] = {"__init__": DbValue::Null};
         row.remove("__init__");
         let cj: ref Int = 0;
-        while cj < n_cols decreases n_cols - cj {
+        while cj < n_cols
+            decreases n_cols - cj {
             let name: String = col_names.get(cj).unwrap_or("");
             let v: DbValue = match sqlite_result_cell_type(rh, ri, cj) {
                 0 => DbValue::Null,
@@ -140,16 +144,16 @@ total fn collect_rows(rh: Int) -> List[Map[String, DbValue]] {
                 _ => DbValue::Blob(wire_to_blob(sqlite_result_cell_blob(rh, ri, cj))),
             };
             row.insert(name, v);
-            cj = cj + 1
+            cj = cj + 1;
         }
         rows.push(row);
-        ri = ri + 1
+        ri = ri + 1;
     }
     rows
 }
 
+// {} is an empty block in MVL, not an empty map — use sentinel pattern.
 // ── Public API ────────────────────────────────────────────────────────────────
-
 /// Open a SQLite database at `path`, creating it if it does not exist.
 ///
 /// `path` must be a bare `String` — `Tainted[String]` is rejected at the type level.
@@ -171,7 +175,11 @@ pub total fn open(path: String) -> Result[SqliteDb, SqliteError] ! DB + FileRead
 /// If `sql` is derived from external input, relabel it first:
 ///   `let safe = relabel trust(tainted_sql, "VALIDATED");`
 /// Returns the number of rows affected.
-pub total fn execute(val db: SqliteDb, sql: String, params: List[DbValue]) -> Result[Int, SqliteError] ! DB {
+pub total fn execute(
+    val db: SqliteDb,
+    sql: String,
+    params: List[DbValue],
+) -> Result[Int, SqliteError] ! DB {
     bind_params(db._handle, params);
     let affected: Int = sqlite_execute(db._handle, sql);
     if affected == -1 {
@@ -185,7 +193,11 @@ pub total fn execute(val db: SqliteDb, sql: String, params: List[DbValue]) -> Re
 ///
 /// `sql` must be a bare `String` — `Tainted[String]` is rejected at the type level.
 /// Use `?` placeholders for runtime values; relabel external strings before passing.
-pub total fn query(val db: SqliteDb, sql: String, params: List[DbValue]) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
+pub total fn query(
+    val db: SqliteDb,
+    sql: String,
+    params: List[DbValue],
+) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
     bind_params(db._handle, params);
     let rh: Int = sqlite_query(db._handle, sql);
     if rh == -1 {
@@ -209,7 +221,11 @@ pub total fn query(val db: SqliteDb, sql: String, params: List[DbValue]) -> Resu
 ///
 /// Example:
 ///   let n = query_scalar(db, "SELECT COUNT(*) FROM users", [])?;
-pub total fn query_scalar(val db: SqliteDb, sql: String, params: List[DbValue]) -> Result[DbValue, SqliteError] ! DB {
+pub total fn query_scalar(
+    val db: SqliteDb,
+    sql: String,
+    params: List[DbValue],
+) -> Result[DbValue, SqliteError] ! DB {
     bind_params(db._handle, params);
     let rh: Int = sqlite_query(db._handle, sql);
     if rh == -1 {
@@ -230,11 +246,12 @@ pub total fn query_scalar(val db: SqliteDb, sql: String, params: List[DbValue]) 
 ///
 /// Example:
 ///   let rows = query_by_min_age(db, 26)?;
-pub total fn query_by_min_age(val db: SqliteDb, min_age: Int where min_age >= 0) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
+pub total fn query_by_min_age(
+    val db: SqliteDb,
+    min_age: Int where min_age >= 0,
+) -> Result[List[Map[String, DbValue]], SqliteError] ! DB {
     query(db, "SELECT id, name, age FROM users WHERE age > ?", [DbValue::Int(min_age)])
 }
 
 /// Close the database and release all resources.
-pub total fn close(db: SqliteDb) -> Unit {
-    sqlite_close(db._handle)
-}
+pub total fn close(db: SqliteDb) -> Unit { sqlite_close(db._handle) }

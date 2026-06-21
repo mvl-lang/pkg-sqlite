@@ -23,18 +23,12 @@
 //   Conversion lives in sqlite.mvl, not here.
 //
 // See #785, #811.
-
-extern "C" {
-    // ── Connection ──────────────────────────────────────────────────────────
+extern "c" {
     total fn sqlite_open(path: String) -> Int
     total fn sqlite_close(db: Int) -> Unit
     total fn sqlite_errmsg(db: Int) -> String
     total fn sqlite_errno(db: Int) -> Int
     total fn sqlite_changes(db: Int) -> Int
-
-    // ── Parameter binding ────────────────────────────────────────────────────
-    // Call sqlite_param_reset before binding each new statement.
-    // Bind params in order (pos 0, 1, 2, ...) before sqlite_execute / sqlite_query.
     total fn sqlite_param_reset(db: Int) -> Unit
     total fn sqlite_param_null(db: Int) -> Unit
     total fn sqlite_param_bool(db: Int, v: Bool) -> Unit
@@ -42,24 +36,11 @@ extern "C" {
     total fn sqlite_param_float(db: Int, v: Float) -> Unit
     total fn sqlite_param_text(db: Int, v: String) -> Unit
     total fn sqlite_param_blob(db: Int, v: String) -> Unit
-
-    // ── Execute (write) ──────────────────────────────────────────────────────
-    // Consumes the param buffer. Returns rows affected (>=0) or -1 on error.
-    // sql: String — SQL must be application-controlled; use ? placeholders
-    // (params: List[DbValue]) for any runtime values to prevent injection.
     total fn sqlite_execute(db: Int, sql: String) -> Int
-
-    // ── Query (read) ─────────────────────────────────────────────────────────
-    // Consumes the param buffer. Returns a result handle (>0) or -1 on error.
-    // The result is fully materialised — call sqlite_result_drop when done.
     total fn sqlite_query(db: Int, sql: String) -> Int
-
-    // ── Result inspection ────────────────────────────────────────────────────
     total fn sqlite_result_col_count(result: Int) -> Int
     total fn sqlite_result_row_count(result: Int) -> Int
     total fn sqlite_result_col_name(result: Int, col: Int) -> String
-
-    // Cell type codes: 0=Null 1=Bool 2=Int 3=Float 4=Text 5=Blob
     total fn sqlite_result_cell_type(result: Int, row: Int, col: Int) -> Int
     total fn sqlite_result_cell_bool(result: Int, row: Int, col: Int) -> Bool
     total fn sqlite_result_cell_int(result: Int, row: Int, col: Int) -> Int
@@ -68,3 +49,16 @@ extern "C" {
     total fn sqlite_result_cell_blob(result: Int, row: Int, col: Int) -> String
     total fn sqlite_result_drop(result: Int) -> Unit
 }
+// ── Connection ──────────────────────────────────────────────────────────
+// ── Parameter binding ────────────────────────────────────────────────────
+// Call sqlite_param_reset before binding each new statement.
+// Bind params in order (pos 0, 1, 2, ...) before sqlite_execute / sqlite_query.
+// ── Execute (write) ──────────────────────────────────────────────────────
+// Consumes the param buffer. Returns rows affected (>=0) or -1 on error.
+// sql: String — SQL must be application-controlled; use ? placeholders
+// (params: List[DbValue]) for any runtime values to prevent injection.
+// ── Query (read) ─────────────────────────────────────────────────────────
+// Consumes the param buffer. Returns a result handle (>0) or -1 on error.
+// The result is fully materialised — call sqlite_result_drop when done.
+// ── Result inspection ────────────────────────────────────────────────────
+// Cell type codes: 0=Null 1=Bool 2=Int 3=Float 4=Text 5=Blob

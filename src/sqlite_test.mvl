@@ -8,33 +8,22 @@
 //
 // Assurance note: blob_to_wire / wire_to_blob are pure; all other package
 // functions cross the extern "rust" boundary and are covered by integration.
-
 use sqlite::{blob_to_wire, wire_to_blob}
 
 // ── blob_to_wire ──────────────────────────────────────────────────────────
+test fn blob_to_wire_empty_list_returns_empty_string() -> Unit { assert_eq(blob_to_wire([]), "") }
 
-test fn blob_to_wire_empty_list_returns_empty_string() -> Unit {
-    assert_eq(blob_to_wire([]), "")
-}
-
-test fn blob_to_wire_single_byte() -> Unit {
-    assert_eq(blob_to_wire([42]), "42")
-}
+test fn blob_to_wire_single_byte() -> Unit { assert_eq(blob_to_wire([42]), "42") }
 
 test fn blob_to_wire_multiple_bytes_comma_separated() -> Unit {
     assert_eq(blob_to_wire([1, 2, 3]), "1,2,3")
 }
 
-test fn blob_to_wire_zero_byte() -> Unit {
-    assert_eq(blob_to_wire([0]), "0")
-}
+test fn blob_to_wire_zero_byte() -> Unit { assert_eq(blob_to_wire([0]), "0") }
 
-test fn blob_to_wire_large_byte_value() -> Unit {
-    assert_eq(blob_to_wire([255]), "255")
-}
+test fn blob_to_wire_large_byte_value() -> Unit { assert_eq(blob_to_wire([255]), "255") }
 
 // ── wire_to_blob ──────────────────────────────────────────────────────────
-
 test fn wire_to_blob_empty_string_returns_empty_list() -> Unit {
     assert_eq(wire_to_blob("").len(), 0)
 }
@@ -59,10 +48,7 @@ test fn wire_to_blob_zero_value() -> Unit {
 }
 
 // ── round-trip ────────────────────────────────────────────────────────────
-
-test fn roundtrip_empty() -> Unit {
-    assert_eq(wire_to_blob(blob_to_wire([])).len(), 0)
-}
+test fn roundtrip_empty() -> Unit { assert_eq(wire_to_blob(blob_to_wire([])).len(), 0) }
 
 test fn roundtrip_single() -> Unit {
     let original: List[Int] = [99];
