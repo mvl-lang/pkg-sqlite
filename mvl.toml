@@ -1,6 +1,6 @@
 [package]
 name             = "sqlite"
-version      = "0.2.1"
+version      = "0.2.2"
 license          = "Apache-2.0"
 requires-mvl     = ">=0.206.0"
 extern-rationale = "wraps rusqlite (bundled SQLite C library); zero system sqlite3 dependency"
@@ -8,4 +8,8 @@ extern-rationale = "wraps rusqlite (bundled SQLite C library); zero system sqlit
 # Rust backend: bridge.rs uses rusqlite directly.
 # LLVM backend: llvm.rs exposes the same symbols as extern "C" — wired via #811.
 [native]
-rusqlite = { version = "0.31", features = ["bundled"] }
+rusqlite = { version = "0.31", features = ["bundled"], license = "MIT" }
+
+# Bundled SQLite C library — rusqlite's `bundled` feature embeds it statically.
+[c-native]
+sqlite3 = { version = "3.44", license = "blessing" }

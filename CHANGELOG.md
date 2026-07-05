@@ -4,6 +4,13 @@ All notable changes to pkg-sqlite will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.2] - 2026-07-05
+
+### Fixed
+- Declare SPDX licenses on external dependencies so `mvl package check` (mvl-lang/mvl#1698) passes:
+  - `rusqlite 0.31` — MIT
+  - Bundled SQLite C library (`sqlite3 3.44`, embedded via rusqlite's `bundled` feature) — `blessing` (SQLite's public-domain-style license). Added as a new `[c-native]` entry.
+
 ## [0.2.0] - 2026-06-18
 
 ### Changed
