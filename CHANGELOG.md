@@ -4,6 +4,12 @@ All notable changes to pkg-sqlite will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.3] - 2026-07-09
+
+### Changed
+- Bumped `rusqlite` from 0.31 to 0.40
+- Updated bundled SQLite from 3.44 to 3.47 (embedded via rusqlite's `bundled` feature)
+
 ## [0.2.2] - 2026-07-05
 
 ### Fixed
